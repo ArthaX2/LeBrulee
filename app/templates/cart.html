@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart - LeBrulee{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Cart Specific Styles - same as before */
+.cart-container {
+    padding: 3rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.cart-container h1 {
+    text-align: center;
+    color: #0a1530;
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.cart-table th, .cart-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+.cart-table th {
+    background-color: #0a1530;
+    color: #fbbf24;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+.cart-table tr:last-child td {
+    border-bottom: none;
+}
+.cart-table tr:hover {
+    background-color: #f9f9f9;
+}
+.cart-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+.qty-input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.remove-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.remove-btn:hover {
+    background: #c82333;
+}
+.cart-totals {
+    margin-top: 2rem;
+    text-align: right;
+    font-size: 1.3rem;
+    color: #0a1530;
+}
+.cart-totals strong {
+    color: #fbbf24;
+    font-size: 1.5rem;
+}
+.checkout-action {
+    margin-top: 1.5rem;
+}
+.checkout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1.1rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0a1530;
+    background: linear-gradient(135deg, #fbbf24, #ffd166);
+    border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(251, 191, 36, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.checkout-btn .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10, 21, 48, 0.1);
+    font-size: 1.1rem;
+}
+.checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(251, 191, 36, 0.45);
+}
+.checkout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(251, 191, 36, 0.3);
+}
+/* Style for empty cart content */
+#empty-cart-message {
+    display: none; 
+    text-align:center; padding: 50px; background: #f8f8f8; border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h1>🛒 Your Cart</h1>
+    
+    <div id="cart-content" {% if not cart_items %}style="display:none;"{% endif %}>
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items-body"> 
+                {% for item in cart_items %}
+                <tr data-id="{{ item.id }}">
+                    <td><img src="{{ item.img }}" alt="{{ item.name }}" class="cart-thumb"></td>
+                    <td>{{ item.name }}</td>
+                    <td><span class="item-price">${{ "%.2f"|format(item.price) }}</span></td>
+                    <td>
+                        <input type="number" 
+                               name="quantity" 
+                               value="{{ item.quantity }}" 
+                               min="1" 
+                               class="qty-input" 
+                               data-item-id="{{ item.id }}">
+                    </td>
+                    <td><span class="item-subtotal">${{ "%.2f"|format(item.price * item.quantity) }}</span></td>
+                    <td>
+                        <form action="{{ url_for('main.remove_from_cart') }}" method="POST" class="remove-form">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" class="remove-btn">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="cart-totals">
+            Total: <span id="cart-total-amount"><strong>${{ "%.2f"|format(total_amount) }}</strong></span>
+        </div>
+        
+        <div class="checkout-action">
+            <a class="checkout-btn" href="{{ url_for('main.checkout') }}">
+                <span class="btn-icon">→</span>
+                <span>Proceed to Checkout</span>
+            </a>
+        </div>
+    </div>
+
+    <div id="empty-cart-message" {% if cart_items %}style="display:none;"{% else %}style="display:block;"{% endif %}>
+        <p style="font-size: 1.2rem; color: #555;">Your cart is currently empty.</p>
+        <a href="{{ url_for('main.menu') }}" style="color: #0a1530; font-weight: 600;">Go to Menu</a>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cartItemsBody = document.getElementById('cart-items-body');
+        const cartTotalDisplay = document.getElementById('cart-total-amount');
+        const cartCountHeader = document.getElementById('cart-item-count'); 
+        const cartContentDiv = document.getElementById('cart-content');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+
+        
+        // --- Helper Functions ---
+        
+        function flashMessage(message, category) {
+            const flashArea = document.querySelector('header') || document.body; 
+            if (!flashArea) return;
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${category}`; 
+            alertDiv.textContent = message;
+            alertDiv.style.cssText = `
+                position: fixed; top: 70px; right: 20px; z-index: 1050; 
+                background: ${category === 'success' ? '#28a745' : '#dc3545'}; 
+                color: white; padding: 10px 20px; border-radius: 5px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.5s;
+            `;
+            
+            const targetElement = document.querySelector('header') || document.body.firstChild;
+            flashArea.insertBefore(alertDiv, targetElement);
+            
+            setTimeout(() => alertDiv.style.opacity = 1, 10);
+
+            setTimeout(() => {
+                alertDiv.style.opacity = 0;
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 2500);
+        }
+
+        function updateTotalDisplay(newTotalAmount, newTotalItems) {
+            if (cartTotalDisplay) {
+                cartTotalDisplay.querySelector('strong').textContent = '$' + parseFloat(newTotalAmount).toFixed(2);
+            }
+            if (cartCountHeader) {
+                cartCountHeader.textContent = newTotalItems;
+            }
+            
+            // Logic to handle empty cart view
+            if (newTotalItems === 0) {
+                 if(cartContentDiv) cartContentDiv.style.display = 'none';
+                 if(emptyCartMessage) emptyCartMessage.style.display = 'block';
+            } else {
+                 if(cartContentDiv) cartContentDiv.style.display = 'block';
+                 if(emptyCartMessage) emptyCartMessage.style.display = 'none';
+            }
+        }
+        
+        // --- Event Listeners for Dynamic Cart Updates ---
+        
+        // 1. Remove Item via AJAX
+        document.querySelectorAll('.remove-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const form = this;
+                const itemRow = form.closest('tr');
+                const submitButton = form.querySelector('.remove-btn');
+                
+                submitButton.textContent = 'Removing...';
+                submitButton.disabled = true;
+
+                const itemId = itemRow.dataset.id; 
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        itemRow.remove(); // Hapus baris dari DOM
+                        updateTotalDisplay(data.total_amount, data.total_items);
+                        flashMessage(data.message, 'success');
+                    } else {
+                        flashMessage(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    flashMessage('An error occurred.', 'error');
+                })
+                .finally(() => {
+                    submitButton.textContent = 'Remove';
+                    submitButton.disabled = false;
+                });
+            });
+        });
+        
+        // 2. Update Quantity (On Change)
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.addEventListener('change', function() {
+                let qty = parseInt(this.value);
+                const itemId = this.dataset.itemId; 
+                const itemRow = this.closest('tr');
+                const priceCell = itemRow.querySelector('.item-price');
+                const subtotalCell = itemRow.querySelector('.item-subtotal');
+                const price = parseFloat(priceCell.textContent.replace('$', ''));
+                
+                if (qty < 1 || isNaN(qty)) {
+                    qty = 1; 
+                    this.value = 1;
+                }
+                
+                // Update subtotal sementara di frontend
+                subtotalCell.textContent = '$' + (qty * price).toFixed(2);
+                
+                // Kirim permintaan AJAX untuk update di backend (session)
+                fetch("{{ url_for('main.add_to_cart') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        item_id: itemId,
+                        quantity: qty,
+                        is_update: true 
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update total global
+                        updateTotalDisplay(data.total_amount, data.total_items);
+                        flashMessage(data.message, 'success');
+                    } else {
+                        flashMessage('Failed to update quantity.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating quantity:', error);
+                    flashMessage('An error occurred during quantity update.', 'error');
+                });
+            });
+        });
+
+    });
+</script>
+{% endblock %}

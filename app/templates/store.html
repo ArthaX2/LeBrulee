@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Store Locations – Le Brûlée{% endblock %}
+
+{% block extra_css %}
+<style>
+/* HERO SECTION */
+.store-hero {
+    background: linear-gradient(135deg, #12265f 0%, #0a1a44 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.store-hero h1 {
+    font-size: 3rem;
+    color: #fbbf24;
+    letter-spacing: 1px;
+}
+
+.store-hero p {
+    font-size: 1.2rem;
+    font-family: Poppins;
+}
+
+/* COUNTRY SECTION */
+.country-section {
+    padding: 2rem 2rem;
+}
+
+.country-section h2 {
+    font-size: 2rem;
+    color: #0a1a44;
+    margin-bottom: 1rem;
+}
+
+/* STORE GRID */
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+}
+
+/* FLIP CARD */
+.store-card {
+    perspective: 1000px;
+    cursor: pointer;
+    height: 180px;
+}
+
+.store-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    border-radius: 10px;
+}
+
+.store-card.flip .store-card-inner {
+    transform: rotateY(180deg);
+}
+
+.store-card-front, .store-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+}
+
+.store-card-front h3, .store-card-back h3 {
+    font-size: 1.1rem;
+    color: #0a1a44;
+    margin-bottom: 0.3rem;
+}
+
+.store-info-item {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.store-info-item strong {
+    min-width: 55px;
+    font-weight: 600;
+    color: #0a1a44;
+}
+
+.store-card-back {
+    background: #f8fafc;
+    transform: rotateY(180deg);
+}
+
+.store-hours p {
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="store-hero">
+    <h1>Find a Store</h1>
+    <p>Visit us at our locations worldwide</p>
+</section>
+
+<!-- INDONESIA -->
+<section class="country-section">
+    <h2>Indonesia</h2>
+    <div class="store-grid">
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>PIM Jakarta</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> Pondok Indah Mall, Jakarta</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +62 21 1234 5678</div>
+                        <div class="store-info-item"><strong>Email:</strong> pim@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Mon-Fri:</strong> 10:00 – 21:00</p>
+                        <p><strong>Sat-Sun:</strong> 10:00 – 22:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Grand Indonesia Jakarta</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> Grand Indonesia Mall, Jakarta</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +62 21 2345 6789</div>
+                        <div class="store-info-item"><strong>Email:</strong> gi@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Mon-Fri:</strong> 10:00 – 22:00</p>
+                        <p><strong>Sat-Sun:</strong> 10:00 – 23:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SINGAPORE -->
+<section class="country-section">
+    <h2>Singapore</h2>
+    <div class="store-grid">
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Marina Bay Sands</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 10 Bayfront Ave</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +65 1234 5678</div>
+                        <div class="store-info-item"><strong>Email:</strong> mbs@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Daily:</strong> 10:00 – 22:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Orchard Road</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 50 Orchard Road</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +65 2345 6789</div>
+                        <div class="store-info-item"><strong>Email:</strong> orchard@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Daily:</strong> 09:00 – 21:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HONG KONG -->
+<section class="country-section">
+    <h2>Hong Kong</h2>
+    <div class="store-grid">
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Central Hong Kong</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 1 Queen's Road Central</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +852 1234 5678</div>
+                        <div class="store-info-item"><strong>Email:</strong> central@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Mon-Sat:</strong> 10:00 – 22:00</p>
+                        <p><strong>Sun:</strong> 10:00 – 20:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CHINA -->
+<section class="country-section">
+    <h2>China</h2>
+    <div class="store-grid">
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Shanghai - Nanjing Road</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 88 Nanjing Road, Shanghai</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +86 21 1234 5678</div>
+                        <div class="store-info-item"><strong>Email:</strong> shanghai@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Daily:</strong> 09:00 – 21:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- EUROPE -->
+<section class="country-section">
+    <h2>Europe</h2>
+    <div class="store-grid">
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>Paris - Champs Élysées</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 50 Champs Élysées, Paris, France</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +33 1 2345 6789</div>
+                        <div class="store-info-item"><strong>Email:</strong> paris@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Mon-Sat:</strong> 09:00 – 20:00</p>
+                        <p><strong>Sun:</strong> 10:00 – 18:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-card" onclick="this.classList.toggle('flip')">
+            <div class="store-card-inner">
+                <div class="store-card-front">
+                    <h3>London - Covent Garden</h3>
+                    <div class="store-info">
+                        <div class="store-info-item"><strong>Address:</strong> 10-20 Long Acre, London, UK</div>
+                        <div class="store-info-item"><strong>Phone:</strong> +44 20 1234 5678</div>
+                        <div class="store-info-item"><strong>Email:</strong> london@lebrulee.com</div>
+                    </div>
+                </div>
+                <div class="store-card-back">
+                    <h3>Store Hours</h3>
+                    <div class="store-hours">
+                        <p><strong>Mon-Fri:</strong> 09:00 – 20:00</p>
+                        <p><strong>Sat-Sun:</strong> 10:00 – 19:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+

@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - LeBrulee{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Fonts */
+    h1, h2, h3 {
+        font-family: "Playfair Display", serif !important;
+        letter-spacing: 0.5px;
+    }
+    p, body {
+        font-family: "Poppins", sans-serif;
+    }
+
+    /* HERO SECTION */
+    .about-hero {
+        background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(../static/about.jpg);
+        color: white;
+        padding: 4rem 2rem;
+        text-align: center;
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .about-hero h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #fbbf24;
+        font-weight: 600;
+    }
+
+    /* ABOUT CONTENT */
+    .about-content {
+        padding: 4rem 2rem;
+    }
+    .about-section {
+        max-width: 1000px;
+        margin: 0 auto 3rem;
+    }
+    .about-section h2 {
+        color: #0a1a3a;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+    }
+    .about-section p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 1.5rem;
+        text-align: justify;
+    }
+
+    /* VALUES SECTION */
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2.5rem;
+        margin-top: 3rem;
+    }
+    .value-card {
+        position: relative;
+        background: #fff;
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: #0a1a3a;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    .value-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        z-index: 0;
+        transform: rotate(15deg);
+        opacity: 0.25;
+        transition: opacity 0.4s ease;
+        border-radius: 50%;
+    }
+    .value-card:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    }
+    .value-card:hover::before {
+        opacity: 0.35;
+    }
+    .value-card h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        z-index: 1;
+        position: relative;
+    }
+    .value-card p {
+        color: #0a1a3a;
+        z-index: 1;
+        position: relative;
+        line-height: 1.6;
+        font-weight: 500;
+    }
+    .value-card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+        z-index: 1;
+        position: relative;
+        transition: transform 0.4s ease, color 0.4s ease;
+    }
+    .value-card:hover .value-card-icon {
+        transform: rotate(-10deg) scale(1.2);
+        color: #f59e0b;
+    }
+
+    /* TEAM SECTION */
+    .team-section {
+        background-color: #f8fafc;
+        padding: 4rem 2rem;
+    }
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .team-member {
+        background: white;
+        padding: 2rem 1rem 1.5rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .team-member:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    }
+    .team-member img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+        border: 4px solid #fbbf24;
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .team-member:hover img {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .team-member h3 {
+        color: #0a1a3a;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .team-member p {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    /* MODAL STYLES */
+    .modal {
+        display: none; 
+        position: fixed; 
+        z-index: 9999; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgba(0,0,0,0.5); 
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 2rem;
+        border-radius: 15px;
+        max-width: 500px;
+        text-align: center;
+        position: relative;
+    }
+    .close {
+        color: #aaa;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .close:hover { color: #fbbf24; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .about-hero h1 {
+            font-size: 2rem;
+        }
+        .about-section h2 {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="about-hero">
+    <div class="container">
+        <h1>About LeBrulee</h1>
+        <p style="font-size: 1.3rem;">Crafting Excellence in Every Bite Since 2020</p>
+    </div>
+</section>
+
+<section class="about-content">
+    <div class="about-section">
+        <h2>Our Story</h2>
+        <p>
+            LeBrulee was born from a passion for creating exceptional baked goods that bring joy to every moment.
+            Founded in 2020, we started as a small neighborhood bakery with a simple mission: to bake the finest
+            pastries, breads, and desserts using traditional techniques and the highest quality ingredients.
+        </p>
+        <p>
+            Today, we've grown into a beloved bakery and café, but our commitment remains the same. Every morning,
+            our skilled bakers arrive before dawn to prepare fresh batches of croissants, baguettes, cakes, and
+            pastries. We believe that great food starts with great ingredients, which is why we source locally
+            whenever possible and never compromise on quality.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2>Our Values</h2>
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-card-icon">🥖</div>
+                <h3>Quality First</h3>
+                <p>We never compromise on the quality of our ingredients or craftsmanship.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-card-icon">🥐</div>
+                <h3>Fresh Daily</h3>
+                <p>Everything is baked fresh every day. Freshness = great taste.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-card-icon">🌾</div>
+                <h3>Community</h3>
+                <p>We proudly support local farmers and suppliers.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-card-icon">🎨</div>
+                <h3>Innovation</h3>
+                <p>We blend tradition with creative, modern flavors.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="team-section">
+    <div class="container">
+        <h2 style="text-align: center; color: #0a1a3a; font-size: 2.5rem; margin-bottom: 3rem;">Our Team</h2>
+        <div class="team-grid">
+            <div class="team-member" onclick="openModal('gordon')">
+                <img src="https://turkeyanaclinic.com/wp-content/uploads/2024/09/Gordon-Ramsay-2.jpg" alt="Gordon Ramsay">
+                <h3>Master Bakers</h3>
+                <p>Experts in traditional French baking techniques.</p>
+            </div>
+            <div class="team-member" onclick="openModal('mikael')">
+                <img src="https://img.jakpost.net/c/2022/06/20/2022_06_20_126920_1655714387._medium.jpg" alt="Mikael Jasin">
+                <h3>Baristas</h3>
+                <p>Certified coffee specialists crafting perfect cups daily.</p>
+            </div>
+            <div class="team-member" onclick="openModal('pierre')">
+                <img src="https://tse1.mm.bing.net/th/id/OIP.BTHHE-80iYNLMQn5dfvoMgHaE8?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Pierre Hermes">
+                <h3>Pastry Artists</h3>
+                <p>Creative minds turning pastries into art.</p>
+            </div>
+            <div class="team-member" onclick="openModal('anna')">
+                <img src="https://www.proalt.com/wp-content/uploads/2023/02/Customer-Service-post.jpg" alt="Service Team">
+                <h3>Service Team</h3>
+                <p>Friendly staff dedicated to customer happiness.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal HTML -->
+<div id="teamModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 id="modal-name"></h3>
+        <img id="modal-img" src="" alt="" style="width:150px;height:150px;border-radius:50%;margin-bottom:1rem;">
+        <p id="modal-description"></p>
+    </div>
+</div>
+
+<script>
+const teamProfiles = {
+  gordon: {
+    name: "Gordon Ramsay",
+    img: "https://turkeyanaclinic.com/wp-content/uploads/2024/09/Gordon-Ramsay-2.jpg",
+    desc: "Master Baker with expertise in traditional French baking techniques."
+  },
+  mikael: {
+    name: "Mikael Jasin",
+    img: "https://img.jakpost.net/c/2022/06/20/2022_06_20_126920_1655714387._medium.jpg",
+    desc: "Barista certified in crafting the perfect coffee experience."
+  },
+  pierre: {
+    name: "Pierre Hermes",
+    img: "https://tse1.mm.bing.net/th/id/OIP.BTHHE-80iYNLMQn5dfvoMgHaE8?rs=1&pid=ImgDetMain&o=7&rm=3",
+    desc: "Pastry Artist creating modern and creative desserts."
+  },
+  anna: {
+    name: "Anna Smith",
+    img: "https://www.proalt.com/wp-content/uploads/2023/02/Customer-Service-post.jpg",
+    desc: "Service Team ensuring every customer leaves happy."
+  }
+};
+
+function openModal(member) {
+  document.getElementById('modal-name').innerText = teamProfiles[member].name;
+  document.getElementById('modal-img').src = teamProfiles[member].img;
+  document.getElementById('modal-description').innerText = teamProfiles[member].desc;
+  document.getElementById('teamModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('teamModal').style.display = 'none';
+}
+
+// Close modal if click outside content
+window.onclick = function(event) {
+  const modal = document.getElementById('teamModal');
+  if (event.target == modal) {
+    closeModal();
+  }
+};
+</script>
+{% endblock %}
+
+
+

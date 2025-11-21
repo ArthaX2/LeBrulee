@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+
+{% block title %}Menu - LeBrulee{% endblock %}
+
+{% block extra_css %}
+<style>
+/* HEADER & HERO */
+.menu-hero {
+    background: linear-gradient(135deg, #112042 0%, #0a1530 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.menu-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #fbbf24;
+}
+
+.menu-content {
+    padding: 4rem 2rem;
+}
+
+.category-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.category-header h2 {
+    color: #0a1530;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.category-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* MENU GRID */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.menu-item {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 5px solid #fbbf24;
+}
+
+.menu-item-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.menu-item h3 {
+    color: #0a1530;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.menu-item p {
+    color: #555;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.menu-item-price {
+    color: #fff;
+    background: #fbbf24;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* Styles for quantity and form layout */
+.add-cart-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.qty-input-menu {
+    width: 60px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.order-btn {
+    background: #0a1530;
+    color: #fbbf24;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1; 
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.order-btn:hover {
+    background: #112042;
+    transform: scale(1.02); 
+}
+
+.order-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- FLOATING CART STYLES --- */
+.alert {
+    display: none !important; 
+}
+.modal-overlay {
+    display: none !important;
+}
+
+.floating-cart-summary {
+    position: fixed;
+    bottom: 20px;
+    right: 20px; 
+    width: 280px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 1500;
+    display: none; 
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.cart-header-float {
+    background-color: #0a1530;
+    color: #fbbf24;
+    padding: 10px 15px;
+    text-align: center;
+    border-bottom: 1px solid #112042;
+}
+
+.cart-header-float h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.cart-items-list {
+    max-height: 250px; 
+    overflow-y: auto;
+    padding: 10px 15px;
+}
+
+.cart-item-float {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.95rem;
+}
+
+.cart-item-float:last-child {
+    border-bottom: none;
+}
+
+.item-qty-float {
+    color: #0a1530;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.item-name-float {
+    flex-grow: 1;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-price-float {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+.empty-message-float {
+    text-align: center;
+    color: #999;
+    padding: 20px 0;
+    font-style: italic;
+}
+
+.cart-footer-float {
+    padding: 15px;
+    border-top: 2px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cart-footer-float p {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0a1530;
+}
+
+.go-to-cart-float-btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background: #fbbf24;
+    color: #0a1530;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background-color 0.3s;
+}
+
+.go-to-cart-float-btn:hover {
+    background-color: #fbd38d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="menu-hero">
+    <div class="container">
+        <h1>Our Menu</h1>
+        <p style="font-size: 1.2rem;">Discover our delicious selection of baked goods and beverages</p>
+    </div>
+</section>
+
+<section class="menu-content">
+
+    <div class="menu-category">
+        <div class="category-header">
+            <h2>🥐 Pastries & Breads</h2>
+            <p>Freshly baked every morning</p>
+        </div>
+
+        <div class="menu-grid">
+            {% for item in grouped_menu.pastries %}
+            <div class="menu-item">
+                <img class="menu-item-image" src="{{ item.img }}">
+                <div class="menu-item-content">
+                    <h3>{{ item.name }}</h3>
+                    <p>{% if item.id == 1 %}Flaky, buttery layers made with European butter.{% elif item.id == 2 %}Crispy crust with a soft French interior.{% elif item.id == 3 %}Artisan sourdough with a rich tangy flavor.{% elif item.id == 4 %}Buttery pastry filled with rich chocolate.{% endif %}</p>
+                    <span class="menu-item-price">${{ "%.2f"|format(item.price) }}</span>
+                    <form action="{{ url_for('main.add_to_cart') }}" method="POST" class="add-cart-form">
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <input type="hidden" name="item_name" value="{{ item.name }}">
+                        <input type="hidden" name="item_price" value="{{ item.price }}">
+                        <input type="hidden" name="item_img" value="{{ item.img }}">
+                        <input type="number" name="quantity" value="1" min="1" class="qty-input-menu">
+                        <button type="submit" class="order-btn">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <div class="category-header">
+            <h2>🎂 Cakes & Desserts</h2>
+            <p>Sweet treats for every occasion</p>
+        </div>
+
+        <div class="menu-grid">
+            {% for item in grouped_menu.cakes %}
+            <div class="menu-item">
+                <img class="menu-item-image" src="{{ item.img }}">
+                <div class="menu-item-content">
+                    <h3>{{ item.name }}</h3>
+                    <p>{% if item.id == 5 %}Rich, creamy cheesecake with a graham crust.{% elif item.id == 6 %}Choux pastry filled with vanilla cream and chocolate top.{% elif item.id == 7 %}Classic caramelized French custard.{% elif item.id == 8 %}Assorted premium French macarons.{% endif %}</p>
+                    <span class="menu-item-price">${{ "%.2f"|format(item.price) }}</span>
+                    <form action="{{ url_for('main.add_to_cart') }}" method="POST" class="add-cart-form">
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <input type="hidden" name="item_name" value="{{ item.name }}">
+                        <input type="hidden" name="item_price" value="{{ item.price }}">
+                        <input type="hidden" name="item_img" value="{{ item.img }}">
+                        <input type="number" name="quantity" value="1" min="1" class="qty-input-menu">
+                        <button type="submit" class="order-btn">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <div class="category-header">
+            <h2>☕ Beverages</h2>
+            <p>Premium coffee and specialty drinks</p>
+        </div>
+
+        <div class="menu-grid">
+            {% for item in grouped_menu.beverages %}
+            <div class="menu-item">
+                <img class="menu-item-image" src="{{ item.img }}">
+                <div class="menu-item-content">
+                    <h3>{{ item.name }}</h3>
+                    <p>{% if item.id == 9 %}Rich, bold premium espresso.{% elif item.id == 10 %}Espresso with steamed milk and foam.{% elif item.id == 11 %}Smooth espresso with steamed milk.{% elif item.id == 12 %}Japanese premium green tea.{% endif %}</p>
+                    <span class="menu-item-price">${{ "%.2f"|format(item.price) }}</span>
+                    <form action="{{ url_for('main.add_to_cart') }}" method="POST" class="add-cart-form">
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        <input type="hidden" name="item_name" value="{{ item.name }}">
+                        <input type="hidden" name="item_price" value="{{ item.price }}">
+                        <input type="hidden" name="item_img" value="{{ item.img }}">
+                        <input type="number" name="quantity" value="1" min="1" class="qty-input-menu">
+                        <button type="submit" class="order-btn">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# --- FLOATING CART SUMMARY BOX --- #}
+<div id="floating-cart" class="floating-cart-summary">
+    <div class="cart-header-float">
+        <h3>🛒 Your Order</h3>
+    </div>
+    <div id="floating-cart-items" class="cart-items-list">
+        <p class="empty-message-float">Your cart is empty.</p>
+    </div>
+    <div class="cart-footer-float">
+        <p>Total: <span id="float-cart-total">$0.00</span></p>
+        <a href="{{ url_for('main.cart') }}" class="go-to-cart-float-btn">Go to Cart</a>
+    </div>
+</div>
+
+
+<script>
+    // --- Floating Cart Helper Functions ---
+
+    /**
+     * Renders the current list of items in the floating cart summary.
+     * @param {Array<Object>} cartData - The list of items from the Flask session.
+     */
+    function renderCartItems(cartData) {
+        const itemsContainer = document.getElementById('floating-cart-items');
+        const cartTotalDisplay = document.getElementById('float-cart-total');
+        const floatingCart = document.getElementById('floating-cart');
+        
+        itemsContainer.innerHTML = ''; // Clear existing items
+        let total = 0;
+        
+        if (cartData && cartData.length > 0) {
+            
+            cartData.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item-float';
+                // Hitung subtotal dan format harga
+                const itemSubtotal = (item.price * item.quantity).toFixed(2);
+                
+                itemDiv.innerHTML = `
+                    <span class="item-qty-float">${item.quantity}x</span>
+                    <span class="item-name-float">${item.name}</span>
+                    <span class="item-price-float">$${itemSubtotal}</span>
+                `;
+                itemsContainer.appendChild(itemDiv);
+                total += parseFloat(itemSubtotal);
+            });
+            
+            // Tampilkan daftar item dan update total
+            cartTotalDisplay.textContent = `$${total.toFixed(2)}`;
+            floatingCart.style.display = 'flex'; 
+            
+        } else {
+            // Keranjang kosong
+            itemsContainer.innerHTML = '<p class="empty-message-float">Your cart is empty.</p>';
+            cartTotalDisplay.textContent = '$0.00';
+            floatingCart.style.display = 'none'; 
+        }
+    }
+    
+    /**
+     * Updates the Floating Cart UI based on the AJAX response.
+     * @param {Object} response - The JSON response from the Flask route (must contain 'cart_items').
+     */
+    function updateFloatingCartUI(response) {
+        const cartCountElement = document.getElementById('cart-item-count');
+
+        // 1. Update the cart badge/icon total (in base.html)
+        if (cartCountElement) {
+            cartCountElement.textContent = response.total_items;
+        }
+        
+        // 2. Render the list of items in the floating box using the received cart_items
+        if (Array.isArray(response.cart_items)) {
+             renderCartItems(response.cart_items);
+        } else {
+            console.error("AJAX response did not contain 'cart_items' array.");
+        }
+    }
+
+    // --- AJAX Listener ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const addToCartForms = document.querySelectorAll('.add-cart-form');
+
+        addToCartForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                
+                const form = this;
+                const formData = new FormData(form);
+                const formAction = form.getAttribute('action');
+                
+                // Button feedback
+                const submitButton = form.querySelector('.order-btn');
+                const originalText = submitButton.textContent;
+                submitButton.textContent = 'Adding...';
+                submitButton.disabled = true;
+
+                // Prepare JSON data
+                const data = {};
+                formData.forEach((value, key) => data[key] = value);
+                
+                fetch(formAction, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // SUCCESS: Update the floating cart and badge
+                        updateFloatingCartUI(data); 
+                        
+                    } else {
+                        alert(data.message || 'Could not add item.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during AJAX request.');
+                })
+                .finally(() => {
+                    // Reset button state and quantity input
+                    setTimeout(() => {
+                        submitButton.textContent = originalText;
+                        submitButton.disabled = false;
+                        const qtyInput = form.querySelector('.qty-input-menu');
+                        if (qtyInput) {
+                            qtyInput.value = 1; // Reset quantity to 1
+                        }
+                    }, 800);
+                });
+            });
+        });
+        
+        // --- INITIAL LOAD CHECK ---
+        const initialCartData = {{ cart_items | default([], true) | tojson }};
+        if (Array.isArray(initialCartData) && initialCartData.length > 0) {
+            renderCartItems(initialCartData);
+
+            const initialTotalItems = initialCartData.reduce((sum, item) => sum + (item.quantity || 0), 0);
+            const cartCountElement = document.getElementById('cart-item-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = initialTotalItems;
+            }
+        }
+
+    });
+</script>
+
+{% endblock %}

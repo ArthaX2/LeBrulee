@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LeBrulee - Bakery & Cafe{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* Poppins for general body text (paragraphs, footer text) */
+    font-family: 'Poppins', sans-serif; 
+    line-height: 1.6;
+    color: #333;
+    background-color: #fcfcfc;
+}
+
+/* TYPOGRAPHY */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+}
+
+/* --- NAVBAR STYLES --- */
+
+header {
+    /* Removed padding to eliminate gap above */
+    background: transparent; 
+    padding: 0; 
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+nav {
+    /* Full width, no max-width limit */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem; /* Horizontal padding for content */
+    
+    /* No Radius */
+    border-radius: 0;
+    
+    /* Solid Background */
+    background: #0a1a44; 
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* LOGO */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+}
+
+.logo-img {
+    height: 45px; 
+    width: auto;
+}
+
+.logo-text {
+    /* Playfair Font */
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: #fbbf24;
+    letter-spacing: 0.5px;
+}
+
+/* NAV LINKS */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    /* Playfair Font */
+    font-family: 'Playfair Display', serif;
+    color: #f8fafc;
+    text-decoration: none;
+    font-weight: 500; 
+    padding: 0.35rem 0;
+    position: relative;
+    font-size: 1.05rem;
+}
+
+/* Underline hover effect */
+.nav-links a:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    display: block;
+    margin-top: 5px;
+    left: 0;
+    background: #fbbf24;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover:after {
+    width: 100%;
+}
+
+/* AUTH */
+.auth-links {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+}
+
+.auth-links a, .auth-links span {
+    /* Playfair Font */
+    font-family: 'Playfair Display', serif;
+    color: #f8fafc;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.auth-links a:hover {
+    color: #fbbf24;
+}
+
+.logout-btn {
+    background-color: #fbbf24;
+    color: #0a1a44 !important; /* Force dark text on gold button */
+    border-radius: 5px;
+    padding: 0.4rem 1.2rem;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logout-btn:hover {
+    background-color: #e0ac1a;
+}
+
+main {
+    min-height: calc(100vh - 200px);
+}
+
+/* --- FOOTER STYLES (Restored) --- */
+footer {
+    background: #0a1a44; 
+    color: white;
+    padding: 4.5rem 2rem 3rem; 
+    margin-top: 5rem; 
+    border-top: 5px solid #fbbf24; /* Gold accent line */
+}
+
+.footer-content-new {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+}
+
+.footer-logo-section p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-logo-img {
+    width: 150px;
+    filter: drop-shadow(0px 5px 10px rgba(0,0,0,0.4));
+}
+
+.footer-links-section h3, 
+.footer-motto-section h3, 
+.footer-social-section h3 {
+    font-family: 'Playfair Display', serif;
+    color: #fbbf24;
+    font-size: 1.35rem;
+    margin-bottom: 1.2rem;
+}
+
+.footer-links-section a {
+    display: block; 
+    font-family: 'Poppins', sans-serif;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease, padding-left 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #fbbf24;
+    padding-left: 5px;
+    text-decoration: underline;
+}
+
+.footer-motto-section p {
+    font-family: 'Poppins', sans-serif;
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+}
+
+/* SOCIAL ICONS */
+.social-icons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+.social-icons a {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%; /* Circular */
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    transition: 0.3s ease;
+}
+
+.social-icons a:hover {
+    background: #fbbf24;
+    color: #0a1a44;
+    border-color: #fbbf24;
+    transform: translateY(-2px);
+}
+
+.social-icons svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* LEGAL */
+.footer-separator {
+    max-width: 1200px;
+    margin: 3.5rem auto 2rem;
+    border-top: 1px solid rgba(255,255,255,0.25);
+}
+
+.footer-bottom-new {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: 'Poppins', sans-serif;
+}
+
+.footer-legal-links a {
+    color: rgba(255,255,255,0.75);
+    margin-left: 1rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-legal-links a:hover {
+    color: #fbbf24;
+    text-decoration: underline;
+}
+
+</style>
+
+{% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<header>
+    <nav>
+        <a href="{{ url_for('main.index') }}" class="logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="logo-img">
+            <span class="logo-text">LeBrulee</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('main.about') }}">About</a></li>
+            <li><a href="{{ url_for('main.menu') }}">Menu</a></li>
+            <li><a href="{{ url_for('main.store') }}">Store</a></li>
+            <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('main.orders') }}">Deliveries</a></li>
+        </ul>
+
+        <div class="auth-links">
+            {% if current_user.is_authenticated %}
+                <span style="color: #fbbf24;">👤 {{ current_user.fullname }}</span>
+                <a href="{{ url_for('main.profile') }}">Profile</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">Login</a>
+                <a href="{{ url_for('main.signup') }}" class="logout-btn">Sign Up</a> 
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <div class="footer-content-new">
+
+        <div class="footer-logo-section">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="footer-logo-img">
+            <p>Crafting French-inspired bakery delights with love and passion.</p>
+        </div>
+
+        <div class="footer-links-section">
+            <h3>Quick Links</h3>
+            <a href="/">Home</a>
+            <a href="/store">Store</a>
+            <a href="/menu">Menu</a>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+        </div>
+
+        <div class="footer-motto-section">
+            <h3>Our Commitment</h3>
+            <p>Premium quality • Authentic taste • Everyday happiness</p>
+            <br>
+            <h3>Visit Us</h3>
+            <p>123 Patisserie Ave, Sweet Town, CA 90210</p>
+        </div>
+
+        <div class="footer-social-section">
+            <h3>Connect With Us</h3>
+            <div class="social-icons">
+
+                <a href="#" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24"><path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10zm-5 3a5 5 0 100 10 5 5 0 000-10zm4.8-2.9a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0z"/></svg>
+                </a>
+
+                <a href="#" aria-label="X (Twitter)">
+                    <svg viewBox="0 0 24 24"><path d="M18 2l-5.5 7L19 22h-3l-4-6-5 6H2l7.5-8.5L2 2h3l4 5 4-5h5z"/></svg>
+                </a>
+
+                <a href="#" aria-label="Facebook">
+                    <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.5 9.9v-7H8v-3h2.5V9.5c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.3.2 2.3.2v2.6h-1.3c-1.3 0-1.7.8-1.7 1.6V12H19l-.5 3h-2.9v7A10 10 0 0022 12z"/></svg>
+                </a>
+
+                <a href="#" aria-label="TikTok">
+                    <svg viewBox="0 0 24 24"><path d="M20 8.1a5.5 5.5 0 01-3.3-1.1A5.7 5.7 0 0115 4h-2v10.2a2.3 2.3 0 11-2-2.3V9a5 5 0 104 4.9V8.7c1 1 2.3 1.5 3 1.5h0V8.1z"/></svg>
+                </a>
+
+                <a href="#" aria-label="Threads">
+                    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1.7 14.2c-1.4 0-2.5-.8-3-2 .3-.2.7-.3 1.2-.3 1 0 1.6.6 1.9 1.3.3-.4.5-1 .5-1.6 0-1.3-.7-2.2-2.3-2.2-.7 0-1.3.1-1.8.3-.1-.4-.2-.8-.2-1.2 0-2 1.4-3.5 3.7-3.5 2.4 0 4 1.6 4 4.4 0 2.8-1.4 5-3.9 5z"/></svg>
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-separator"></div>
+
+    <div class="footer-bottom-new">
+        <p>&copy; 2025 LeBrulee Bakery & Cafe. All rights reserved.</p>
+        <div class="footer-legal-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+        </div>
+    </div>
+</footer>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
