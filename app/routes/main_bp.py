@@ -102,6 +102,18 @@ def contact():
             # Get recipient email from config
             recipient_email = current_app.config.get("CONTACT_EMAIL", "arthasuryapratama46@gmail.com")
             
+            # Debug: Print mail configuration (remove in production)
+            print("=" * 50)
+            print("DEBUG: Mail Configuration")
+            print(f"MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}")
+            print(f"MAIL_PORT: {current_app.config.get('MAIL_PORT')}")
+            print(f"MAIL_USE_TLS: {current_app.config.get('MAIL_USE_TLS')}")
+            print(f"MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}")
+            print(f"MAIL_PASSWORD: {'*' * len(str(current_app.config.get('MAIL_PASSWORD', '')))}")
+            print(f"MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}")
+            print(f"Recipient: {recipient_email}")
+            print("=" * 50)
+            
             # Create email message
             msg = Message(
                 subject=f"Contact Form: {subject}",
@@ -177,13 +189,23 @@ Reply directly to this email to respond to {name} ({email}).
 """
             
             # Send email
+            print(f"Attempting to send email to {recipient_email}...")
             mail.send(msg)
+            print("Email sent successfully!")
             flash("Thank you for your message! We'll get back to you soon.", "success")
             
         except Exception as e:
-            # Log the error (in production, use proper logging)
-            print(f"Error sending email: {str(e)}")
-            flash("Sorry, there was an error sending your message. Please try again later or contact us directly.", "error")
+            # Log the error with full details
+            import traceback
+            error_details = traceback.format_exc()
+            print("=" * 50)
+            print("ERROR: Failed to send email")
+            print(f"Error Type: {type(e).__name__}")
+            print(f"Error Message: {str(e)}")
+            print("\nFull Traceback:")
+            print(error_details)
+            print("=" * 50)
+            flash(f"Sorry, there was an error sending your message: {str(e)}. Please try again later or contact us directly.", "error")
         
         return redirect(url_for("main.contact"))
     
