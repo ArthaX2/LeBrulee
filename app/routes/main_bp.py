@@ -28,6 +28,38 @@ def get_menu_items():
         12: {'id': 12, 'name': 'Green Tea', 'price': 3.00, 'img': 'https://parisbaguette.com/wp-content/uploads/2024/07/1a0f96c51ec748ce9b4914f0725ac239-4.jpg'},
     }
 
+
+def _get_cart_items():
+    """Return a shallow copy of the cart stored in the session."""
+    return list(session.get("cart", []))
+
+
+def _save_cart_items(cart_items):
+    session["cart"] = cart_items
+    session.modified = True
+
+
+def _calculate_totals(cart_items):
+    total_amount = sum(item["price"] * item["quantity"] for item in cart_items)
+    total_items = sum(item["quantity"] for item in cart_items)
+    return round(total_amount, 2), total_items
+
+
+def _get_order_history():
+    return list(session.get("order_history", []))
+
+
+def _save_order_history(order_history):
+    session["order_history"] = order_history
+    session.modified = True
+
+
+def _next_order_id():
+    order_id = session.get("order_counter", 1)
+    session["order_counter"] = order_id + 1
+    session.modified = True
+    return order_id
+
 # ------------------- BASIC PAGES -------------------
 @main_bp.route("/")
 def index():
@@ -157,285 +189,242 @@ Reply directly to this email to respond to {name} ({email}).
     
     return render_template("contact.html")
 
-# ------------------- USER SIGNUP & PROFILE -------------------
-@main_bp.route("/profile")
-# @login_required
-def profile():
-    return render_template("profile.html")
 
-@main_bp.route("/signup", methods=["GET","POST"])
+@main_bp.route("/signup", methods=["GET", "POST"])
 def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.profile"))
+
     form = SignupForm()
     msg = ""
+
     if form.validate_on_submit():
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
-            msg = "Username already exists. Please choose another one."
+            msg = "Username already taken. Please choose another."
         else:
-            user = User(
+            new_user = User(
                 username=form.username.data,
                 fullname=form.fullname.data,
                 password=form.password.data,
             )
-            db.session.add(user)
+            db.session.add(new_user)
             db.session.commit()
             msg = "Account created successfully! Please log in."
+    elif request.method == "POST":
+        # Surface the first validation error for quick feedback.
+        first_error_list = next(iter(form.errors.values()), [])
+        msg = first_error_list[0] if first_error_list else "Please check the form inputs."
+
     return render_template("signup.html", form=form, msg=msg)
 
-# ------------------- CART SYSTEM -------------------
+
+@main_bp.route("/profile")
+@login_required
+def profile():
+    return render_template("profile.html")
+
+
 @main_bp.route("/cart")
 def cart():
-    cart_items = session.get("cart", [])
-    total_amount = sum(item["price"]*item["quantity"] for item in cart_items)
+    cart_items = _get_cart_items()
+    total_amount, _ = _calculate_totals(cart_items)
     return render_template("cart.html", cart_items=cart_items, total_amount=total_amount)
 
-@main_bp.route("/add_to_cart", methods=["POST"])
+
+@main_bp.route("/cart/add", methods=["POST"])
 def add_to_cart():
+    payload = request.get_json(silent=True) or request.form
+    if not payload:
+        return jsonify({"success": False, "message": "No data provided."}), 400
+
     try:
-        data = request.get_json()
-        item_id = int(data.get("item_id"))
-        qty = int(data.get("quantity",1))
-        is_update = data.get("is_update", False)
-        item_name = data.get("item_name")
-        item_price = float(data.get("item_price"))
-        item_img = data.get("item_img")
-    except Exception:
-        return jsonify({"success": False, "message": "Invalid data format."}), 400
+        item_id = int(payload.get("item_id", 0))
+    except (TypeError, ValueError):
+        item_id = 0
 
-    if "cart" not in session: session["cart"]=[]
+    try:
+        quantity = int(payload.get("quantity", 1))
+    except (TypeError, ValueError):
+        quantity = 1
 
-    cart = session["cart"]
-    found = False
-    for item in cart:
-        if item["id"]==item_id:
-            if is_update: item["quantity"]=qty
-            else: item["quantity"]+=qty
-            found=True
+    quantity = max(1, quantity)
+    is_update = str(payload.get("is_update", "")).lower() in {"true", "1", "yes"}
+
+    menu_items = get_menu_items()
+    menu_item = menu_items.get(item_id)
+    if not menu_item:
+        return jsonify({"success": False, "message": "Invalid menu item."}), 400
+
+    cart_items = _get_cart_items()
+    message = "Item added to cart."
+    for item in cart_items:
+        if item["id"] == item_id:
+            if is_update:
+                item["quantity"] = quantity
+                message = "Cart updated."
+            else:
+                item["quantity"] += quantity
+                message = "Item quantity updated."
             break
+    else:
+        cart_items.append({
+            "id": menu_item["id"],
+            "name": menu_item["name"],
+            "price": float(menu_item["price"]),
+            "img": menu_item["img"],
+            "quantity": quantity,
+        })
 
-    if not found and not is_update:
-        menu_details = get_menu_items().get(item_id)
-        if menu_details:
-            new_item = {
-                "id": item_id,
-                "name": item_name or menu_details['name'],
-                "price": item_price or menu_details['price'],
-                "img": item_img or menu_details['img'],
-                "quantity": qty
-            }
-            cart.append(new_item)
-        else: return jsonify({"success": False, "message":"Item not found"}),404
+    _save_cart_items(cart_items)
+    total_amount, total_items = _calculate_totals(cart_items)
 
-    session.modified=True
-    total_items = sum(i["quantity"] for i in session["cart"])
-    total_amount = sum(i["price"]*i["quantity"] for i in session["cart"])
-    return jsonify({"success":True,"total_items":total_items,"total_amount":"%.2f"%total_amount,"cart_items":session["cart"]})
+    return jsonify({
+        "success": True,
+        "message": message,
+        "cart_items": cart_items,
+        "total_items": total_items,
+        "total_amount": total_amount,
+    })
 
-@main_bp.route("/remove_from_cart", methods=["POST"])
+
+@main_bp.route("/cart/remove", methods=["POST"])
 def remove_from_cart():
+    payload = request.get_json(silent=True) or request.form
+    if not payload:
+        return jsonify({"success": False, "message": "No data provided."}), 400
+
     try:
-        data = request.get_json()
-        item_id=int(data.get("item_id"))
-    except:
-        item_id=int(request.form.get("item_id"))
+        item_id = int(payload.get("item_id", 0))
+    except (TypeError, ValueError):
+        item_id = 0
 
-    if "cart" in session:
-        item_name_to_remove = next((i['name'] for i in session['cart'] if i['id']==item_id), "Item")
-        session["cart"] = [i for i in session["cart"] if i["id"] != item_id]
-        session.modified=True
-        total_items = sum(i["quantity"] for i in session["cart"])
-        total_amount = sum(i["price"]*i["quantity"] for i in session["cart"])
-        return jsonify({"success":True,"total_items":total_items,"total_amount":"%.2f"%total_amount,"message":f"{item_name_to_remove} removed from cart.","cart_items":session["cart"]})
-    return jsonify({"success":False,"message":"Cart empty","cart_items":[]})
+    cart_items = _get_cart_items()
+    new_cart = [item for item in cart_items if item["id"] != item_id]
 
-# ------------------- CHECKOUT & ORDERS -------------------
-@main_bp.route("/checkout", methods=["GET","POST"])
+    if len(new_cart) == len(cart_items):
+        return jsonify({"success": False, "message": "Item not found in cart."}), 404
+
+    _save_cart_items(new_cart)
+    total_amount, total_items = _calculate_totals(new_cart)
+
+    return jsonify({
+        "success": True,
+        "message": "Item removed from cart.",
+        "total_amount": total_amount,
+        "total_items": total_items,
+    })
+
+
+@main_bp.route("/checkout", methods=["GET", "POST"])
 def checkout():
-    # --- Ambil data cart dari session ---
-    cart_items = session.get("cart", [])
-    # Pastikan selalu list (jaga2 kalau korup)
-    if cart_items is None or callable(cart_items) or not isinstance(cart_items, list):
-        cart_items = []
+    cart_items = _get_cart_items()
+    total_amount, total_items = _calculate_totals(cart_items)
+    order_history = _get_order_history()
+    recent_order_id = session.get("recent_order_id")
+    recent_order = next((order for order in order_history if order["id"] == recent_order_id), None)
 
-    total_amount = sum(i["price"] * i["quantity"] for i in cart_items)
-
-    # --- Ambil riwayat order dari session ---
-    order_history = session.get("order_history", [])
-    if order_history is None or callable(order_history) or not isinstance(order_history, list):
-        order_history = []
-
-    recent_order = None
-
-    # ================== HANDLE POST (PLACE ORDER) ==================
     if request.method == "POST":
         if not cart_items:
-            flash("Your cart is empty.", "warning")
-            return redirect(url_for("main.cart"))
+            flash("Your cart is empty. Please add items before checking out.", "error")
+            return redirect(url_for("main.menu"))
 
-        # Data shipping
-        customer_name = request.form.get("name", "").strip()
+        name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
         address = request.form.get("address", "").strip()
+        payment_method = request.form.get("payment_method")
 
-        # Data payment method dari form (cod / transfer)
-        raw_method = request.form.get("payment_method", "").lower()
+        if not all([name, email, address, payment_method]):
+            flash("Please fill out all required fields and select a payment method.", "error")
+            return redirect(url_for("main.checkout"))
 
-        if raw_method == "cod":
-            payment_method = "Cash on Delivery"
-        elif raw_method == "transfer":
-            payment_method = "Bank Transfer"
-        else:
-            payment_method = "Unknown"
-
-        # Detail tambahan sesuai pilihan
-        cod_address = request.form.get("cod_address", "").strip()
-        transfer_sender = request.form.get("transfer_sender", "").strip()
-
-        # Perhitungan estimasi antar
+        shipping_fee = 5.00
         delivery_minutes = random.randint(25, 45)
-        eta_time = datetime.now() + timedelta(minutes=delivery_minutes)
+        delivery_eta = (datetime.utcnow() + timedelta(minutes=delivery_minutes)).strftime("%I:%M %p")
+        order_id = _next_order_id()
+        pretty_payment = "Cash on Delivery" if payment_method == "cod" else "Bank Transfer"
 
-        # Copy item cart biar nggak keubah kalau session di-clear
-        copied_items = [
-            {"id": i["id"], "name": i["name"], "price": i["price"], "quantity": i["quantity"]}
-            for i in cart_items
-        ]
-
-        # Order ID simpel, naik terus
-        order_id = session.get("order_counter", 0) + 1
-        session["order_counter"] = order_id
-
-        # Susun objek order untuk ditampilkan + disimpan ke history
-        recent_order = {
+        new_order = {
             "id": order_id,
-            "customer": customer_name,
+            "customer": name,
             "email": email,
             "address": address,
-            "payment_method": payment_method,
-            "total": total_amount,
-            "delivery_minutes": delivery_minutes,
-            "delivery_eta": eta_time.strftime("%I:%M %p"),
-            "placed_at": datetime.now().strftime("%b %d, %Y %I:%M %p"),
+            "payment_method": pretty_payment,
             "status": "Preparing",
-            "items": copied_items,
-            "cod_address": cod_address,
-            "transfer_sender": transfer_sender,
+            "items": [{"name": item["name"], "quantity": item["quantity"], "price": item["price"]} for item in cart_items],
+            "placed_at": datetime.utcnow().strftime("%b %d, %Y %I:%M %p"),
+            "delivery_eta": delivery_eta,
+            "delivery_minutes": delivery_minutes,
+            "total": round(total_amount + shipping_fee, 2),
+            "subtotal": total_amount,
+            "shipping_fee": shipping_fee,
         }
 
-        # Masukin ke history di urutan paling atas
-        order_history.insert(0, {**recent_order})
-        session["order_history"] = order_history
+        order_history.insert(0, new_order)
+        _save_order_history(order_history)
+        session["recent_order_id"] = order_id
+        _save_cart_items([])
 
-        # Bersihin cart
-        session.pop("cart", None)
-        session.modified = True
+        flash("Order placed successfully! We are preparing your treats.", "success")
+        return redirect(url_for("main.checkout"))
 
-        flash("Order placed successfully! Your bread is being prepared.", "success")
-
-        # Supaya tampilan di halaman kosong (karena cart sudah di-clear)
-        cart_items = []
-        total_amount = 0
-
-    # ================== RENDER TEMPLATE ==================
     return render_template(
         "checkout.html",
         cart_items=cart_items,
         total_amount=total_amount,
-        recent_order=recent_order,
+        total_items=total_items,
         order_history=order_history,
+        recent_order=recent_order,
     )
 
-@main_bp.route("/orders/<int:order_id>/delivered", methods=["POST"])
-def mark_order_delivered(order_id):
-    try:
-        order_history = session.get("order_history", [])
-        # Ensure order_history is always a list (handle None, functions, or other types)
-        if order_history is None or callable(order_history) or not isinstance(order_history, list):
-            order_history = []
-            session["order_history"] = order_history
-            session.modified = True
-        
-        updated = False
-        for order in order_history:
-            # Handle both int and string comparisons
-            order_id_value = order.get("id")
-            if order_id_value == order_id or str(order_id_value) == str(order_id):
-                order["status"] = "Delivered"
-                updated = True
-                break
-        
-        if updated:
-            session["order_history"] = order_history
-            session.modified = True
-            return jsonify({"success": True, "message": "Order marked as delivered."})
-        
-        return jsonify({"success": False, "message": "Order not found."}), 404
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
-
-@main_bp.route("/orders/<int:order_id>/cancel", methods=["POST"])
-def cancel_order(order_id):
-    try:
-        order_history = session.get("order_history", [])
-        if order_history is None or callable(order_history) or not isinstance(order_history, list):
-            order_history = []
-            session["order_history"] = order_history
-            session.modified = True
-
-        updated = False
-        for order in order_history:
-            order_id_value = order.get("id")
-            if order_id_value == order_id or str(order_id_value) == str(order_id):
-                order["status"] = "Cancelled"
-                updated = True
-                break
-
-        if updated:
-            session["order_history"] = order_history
-            session.modified = True
-            return jsonify({"success": True, "message": "Order cancelled."})
-
-        return jsonify({"success": False, "message": "Order not found."}), 404
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
 
 @main_bp.route("/orders")
 def orders():
-    order_history = session.get("order_history", [])
-    # Ensure order_history is always a list (handle None, functions, or other types)
-    # Check if it's callable (a function) or not a list
-    if order_history is None or callable(order_history) or not isinstance(order_history, list):
-        order_history = []
-        session["order_history"] = order_history
-        session.modified = True
+    order_history = _get_order_history()
     return render_template("orders.html", order_history=order_history)
+
+
+@main_bp.route("/orders/<int:order_id>/delivered", methods=["POST"])
+def mark_order_delivered(order_id):
+    order_history = _get_order_history()
+    order = next((order for order in order_history if order["id"] == order_id), None)
+    if not order:
+        return jsonify({"success": False, "message": "Order not found."}), 404
+
+    if order["status"] == "Delivered":
+        return jsonify({"success": True, "message": "Order already delivered."})
+
+    order["status"] = "Delivered"
+    _save_order_history(order_history)
+    return jsonify({"success": True, "message": "Order marked as delivered."})
+
+
+@main_bp.route("/orders/<int:order_id>/cancel", methods=["POST"])
+def cancel_order(order_id):
+    order_history = _get_order_history()
+    order = next((order for order in order_history if order["id"] == order_id), None)
+    if not order:
+        return jsonify({"success": False, "message": "Order not found."}), 404
+
+    if order["status"] == "Cancelled":
+        return jsonify({"success": True, "message": "Order already cancelled."})
+
+    order["status"] = "Cancelled"
+    _save_order_history(order_history)
+    return jsonify({"success": True, "message": "Order cancelled."})
+
 
 @main_bp.route("/orders/<int:order_id>/remove", methods=["POST"])
 def remove_order(order_id):
-    try:
-        order_history = session.get("order_history", [])
-        # Ensure order_history is always a list (handle None, functions, or other types)
-        if order_history is None or callable(order_history) or not isinstance(order_history, list):
-            order_history = []
-            session["order_history"] = order_history
-            session.modified = True
-        
-        # Find and remove the order
-        removed = False
-        updated_history = []
-        for order in order_history:
-            # Handle both int and string comparisons
-            order_id_value = order.get("id")
-            if order_id_value != order_id and str(order_id_value) != str(order_id):
-                updated_history.append(order)
-            else:
-                removed = True
-        
-        if removed:
-            session["order_history"] = updated_history
-            session.modified = True
-            return jsonify({"success": True, "message": "Order removed from payment history."})
-        
+    order_history = _get_order_history()
+    new_history = [order for order in order_history if order["id"] != order_id]
+
+    if len(new_history) == len(order_history):
         return jsonify({"success": False, "message": "Order not found."}), 404
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
+
+    _save_order_history(new_history)
+    if session.get("recent_order_id") == order_id:
+        session.pop("recent_order_id")
+    session.modified = True
+
+    return jsonify({"success": True, "message": "Order removed from history."})

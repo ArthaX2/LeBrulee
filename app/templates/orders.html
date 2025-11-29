@@ -108,9 +108,9 @@ function showToast(message, type='info') {
 }
 
 document.addEventListener('DOMContentLoaded',function(){
-    // Use placeholders for safe replacement
-    const markDeliveredUrl = "{{ url_for('main.mark_order_delivered', order_id='ORDER_ID') }}";
-    const removeOrderUrl = "{{ url_for('main.remove_order', order_id='ORDER_ID') }}";
+    // Use 0 as placeholder, then replace in JS
+    const markDeliveredUrl = "{{ url_for('main.mark_order_delivered', order_id=0) }}";
+    const removeOrderUrl = "{{ url_for('main.remove_order', order_id=0) }}";
     const csrfToken = "{{ csrf_token() if csrf_token else '' }}";
 
     // Mark as delivered
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
             btn.disabled=true; btn.textContent='Completing...'; btn.style.opacity='0.7';
 
-            fetch(markDeliveredUrl.replace('ORDER_ID',orderId),{
+            fetch(markDeliveredUrl.replace('/0', '/'+orderId),{
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
             btn.disabled=true; btn.textContent='Removing...'; btn.style.opacity='0.7';
 
-            fetch(removeOrderUrl.replace('ORDER_ID',orderId),{
+            fetch(removeOrderUrl.replace('/0', '/'+orderId),{
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
