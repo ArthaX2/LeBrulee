@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -18,19 +18,29 @@ def logout():
 
 @auth_bp.route("/reset", methods=["GET", "POST"])
 def reset():
+    """
+    Allow a user to reset their password by username.
+
+    This mirrors the logic you requested:
+      - Look up user by username
+      - If found, update password and show success flash
+      - If not found, show error flash
+    """
     form = ResetUserForm()
-    msg = ""
 
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+
         if user:
+            # Use the same pattern as the User model (password_hash field)
             user.password_hash = generate_password_hash(form.new_password.data)
             db.session.commit()
-            msg = "Password reset successful!"
+            flash("Password updated successfully.", "success")
+            return redirect(url_for("auth.login"))
         else:
-            msg = "User not found."
+            flash("User not found.", "danger")
 
-    return render_template("reset.html", form=form, msg=msg)
+    return render_template("auth/reset.html", form=form)
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
